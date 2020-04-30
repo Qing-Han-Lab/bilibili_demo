@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+  </head>
+  <body>
+    <noscript>
+      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <div id="app"></div>
+    <!-- built files will be auto injected -->
+  </body>
+  <script>
+    // 页面总体逻辑
+    document.addEventListener('plusready',function(){
+      // 网络监听
+      function netWorkListen(){
+         document.addEventListener('netchange',function(){
+           let nowNetStatus = window.plus.networkinfo.getcurrentType();
+           let text = ''
+           if(nowNetStatus===6){
+              text = '您已经使用无线网络运行app'
+           }else{
+              text = '您正在使用4G流量运行app'
+           }
+           window.plus.nativeUI.toast(text)
+         },false)
+      }
+
+      // 运行状态切换
+      function runStatus(){
+        document.addEventListener('pause',function(){ // 从前台到后台
+          window.plus.nativeUI.toast('应用程序已运行在后台')
+        })
+        document.addEventListener('resume',function(){ // 从后台到前台
+          window.plus.nativeUI.toast('欢迎回来')
+        })
+      }
+
+      // 安卓设备自定义返回键盘
+      function setBackButton(){
+        var canClose = false;
+        window.plus.key.addEventListener('backbutton',function(){
+          let wvList = window.plus.webview.all();
+          if(wvList.length!==1){ // 关闭当前页面,返回上一页
+            let wvPage = window.plus.webview.currentWebview();
+            wvPage.close();
+          }else{ // 关闭应用
+             if(!canClose){
+               canClose = true;
+               window.plus.nativeUI.toast('一秒内连续按两下返回键退出应用');
+               setTimeout(() => {
+                 canClose = false
+               }, 1000);
+             }else{
+               window.plus.runtime.quit()
+               canClose = false;
+             }
+          }
+        })
+      }
+
+      // 运行所有方法
+      netWorkListen();
+      runStatus();
+      setBackButton();
+
+      // 竖屏锁定
+      if(window.plus){
+        window.plus.screen.lockOrientation('portrait-primary')
+      }else{
+        window.screen.lockOrientation('portrait-primary');
+      }
+
+    },false);
+  </script>
+</html>
